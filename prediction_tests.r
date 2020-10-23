@@ -9,29 +9,32 @@ total_cols <- 212;
 
 # pseudocode for now
 # find weekly cases from dataset
-def divide_up_by_weeks(case.data):
+divide_up_by_weeks <- function(case.data) {
   new.data = data.frame();
-  total_week = [0] * total_rows;
+  total_week = rep(0, total_rows);
   i <- 0;
-  while i < total_rows:
-    row = case.data[i, 2:total_cols];
-    total_week = data_add(total_week, row)
-    if (i % 7 == 0) {
+  while (i < total_rows) {
+    row <- case.data[i, 2:total_cols];
+    total_week <- data_add(total_week, row)
+    if (i %% 7 == 0) {
       new.data[dim(new.data)[1]] <- total_week;
-      total_week = [0] * total_rows;
+      total_week = rep(0, total_rows);
     }
-    i += 1;
-  return new.data;
+    i = i + 1;
+  }
+  new.data;
+}
 
-def data_add(row1, row2):
-  return row1 + row2
+data_add <- function(row1, row2) {
+  row1 + row2;
+}
 
 week.data <- divide_up_by_weeks(case.data);
 # collect data from weeks 10 through 30
 x = matrix();
 y = c();
 i = 10;
-while i < 30:
+while (i < 30) {
   # extract united states cases for week i, for example
   # the target feature is whether the data increased from last week
   target = week.data[i, 201];
@@ -46,14 +49,16 @@ while i < 30:
   data.row = c(features, pct_increases);
   y[i - 9] = target;
   x[i - 9, ] = data.row;
+}
 
 # custom inner product
-def kernel(v1, v2):
+kernel <- function(v1, v2) {
   total = 0;
   # add absolute number of cases
-  total += sum(v1[1:(total_cols - 1)]*v2[1:(total_cols - 1)])/10000 # may want to change 10000?
+  total = total + sum(v1[1:(total_cols - 1)]*v2[1:(total_cols - 1)])/10000 # may want to change 10000?
   # add percent increase
-  total += sum(v1[total_cols:(2*total_cols - 2)]*v2[total_cols:(2*total_cols - 2)])
+  total = total + sum(v1[total_cols:(2*total_cols - 2)]*v2[total_cols:(2*total_cols - 2)])
+}
 
 dat = data.frame(x, y = as.factor(y))
 svm(y ~ ., data = dat, kernel = kernel, cost = 10, scale = FALSE);
