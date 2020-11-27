@@ -13,8 +13,7 @@
 # currently, the model doesn't consider previous worldwide cases as a descriptive feature at all.
 # If it works better, I might try a model where the previous worldwide cases are weighted quite highly
 
-# to do: add plot of week number vs predicted cases for week, overlaid with week number vs actual cases for week
-# to do: narrow down some of the descriptive features (by best correlation?)
+# to do: add legend to plot, and dates?
 # to do: try predicting more than one week ahead
 # to do: add weather/economic data to model
 # to do: Add legend on graph and convert week number to actual date
@@ -31,15 +30,15 @@ total_cols <- 212;
 relevant.regions = c("World", "United.States", "India", "Brazil", "Russia", "Argentina");
 
 # create dataset for predicting a certain number of weeks ahead
-# accumulate data for 39 weeks, from January 21 to October 19
+# accumulate data for 39 weeks, from January 27 (row 28 = 27 + 1) to November 22 (row 328 = 27 + 301)
 prepare.week.data <- function(case.data) {
   case.data = case.data[relevant.regions];
   week.data = read.table(text = "",
                          col.names = relevant.regions);
   total_week = rep(0, length(relevant.regions));
   i <- 1; # i is number of days since January 20
-  while (i <= 273) {
-    row <- case.data[i + 21, ];
+  while (i <= 301) {
+    row <- case.data[i + 27, ];
     row[is.na(row)] <- 0;
     total_week <- data_add(total_week, row)
     if (i %% 7 == 0) {
@@ -53,7 +52,7 @@ prepare.week.data <- function(case.data) {
 
 prepare.log.data <- function(week.data) {
   # make logarithmic data
-  log.data = data.frame(matrix(nrow = 39, ncol = length(relevant.regions)));
+  log.data = data.frame(matrix(nrow = dim(week.data)[1], ncol = length(relevant.regions)));
   names(log.data) = relevant.regions;
   for (r in relevant.regions) {
     log.data[r] = log(week.data[r])
@@ -108,10 +107,12 @@ data_add <- function(row1, row2) {
   row1 + row2;
 }
 
+num.weeks.ahead = 1; # Predict new cases this many weeks ahead; change to 1, 2, or 4
+
 set.seed(50)
 week.data = prepare.week.data(case.data);
 log.data = prepare.log.data(week.data);
-new.data = find.best.correlations(log.data, 2);
+new.data = find.best.correlations(log.data, num.weeks.ahead);
 
 num_instances = dim(new.data)[1];
 train = sample(num_instances, replace=F, 25);
@@ -120,20 +121,34 @@ test.data = new.data[-train, ];
 library(e1071)
 my.svm <- svm(World ~ ., data = train.data);
 library(Metrics)
-train_accuracy <- rmse(train.data$World, predict(my.svm, train.data))
+train_accuracy <- rmse(train.data$World, predict(my.svm, train.data));
 # smaller accuracy is better
-print(train_accuracy) # 0.2542885
+print(train_accuracy) # 0.2343199 (1 week), 0.1674008 (2 week), 0.187108 (4 week)
 train_correlation = cor(train.data$World, predict(my.svm, train.data));
 # correlation close to 1 is better
-print(train_correlation) # 0.9922436
-test_accuracy <- rmse(test.data$World, predict(my.svm, test.data))
+print(train_correlation) # 0.9818743 (1 week), 0.9880779 (2 week), 0.9665862 (4 week)
+test_accuracy <- rmse(test.data$World, predict(my.svm, test.data));
 # smaller accuracy is better
-print(test_accuracy) # 0.4189529
+print(test_accuracy) # 0.8051913 (1 week), 0.6700352 (2 week), 0.2281461 (4 week)
 test_correlation <- cor(test.data$World, predict(my.svm, test.data));
 # correlation close to 1 is better
-print(test_correlation) # 0.9791996
+print(test_correlation) # 0.8737907 (1 week), 0.8560593 (2 week), 0.9705397 (4 week)
 
 # Plot actual vs predicted cases
-plot(exp(new.data$World), xlab="Week number", ylab="Number of cases")
+plot(exp(new.data$World), xlab="Weeks since 2020-01-27", ylab="New cases per week")
 points(exp(predict(my.svm, new.data)), type = "p", col = "blue")
+legend(5, 4e+6, legend=c("Actual cases", "Predicted cases"), fill=c("black", "blue"))
 
+# Future predictions!
+# Predict one week in advance:
+#currweek = data.frame(0, log.data$United.States[43], log.data$India[43], log.data$Brazil[43], log.data$Russia[43], log.data$Argentina[43], log.data$World[43])
+#names(currweek) = names(new.data)
+#exp(predict(my.svm, currweek)) # 2598020
+# Predict two weeks in advance:
+#currweek = data.frame(0, log.data$United.States[43], log.data$India[43], log.data$Brazil[43], log.data$Russia[43], log.data$Argentina[43], log.data$World[43])
+#names(currweek) = names(new.data)
+#exp(predict(my.svm, currweek)) # 3041765
+# Predict four weeks in advance:
+#currweek = data.frame(0, log.data$United.States[39], log.data$India[39], log.data$Brazil[39], log.data$Russia[39], log.data$Argentina[39], log.data$World[43])
+#names(currweek) = names(new.data)
+#exp(predict(my.svm, currweek)) # 2306293
