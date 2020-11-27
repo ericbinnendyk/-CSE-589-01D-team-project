@@ -107,7 +107,7 @@ data_add <- function(row1, row2) {
   row1 + row2;
 }
 
-num.weeks.ahead = 1; # Predict new cases this many weeks ahead; change to 1, 2, or 4
+num.weeks.ahead = 4; # Predict new cases this many weeks ahead; change to 1, 2, or 4
 
 set.seed(50)
 week.data = prepare.week.data(case.data);
@@ -135,7 +135,7 @@ test_correlation <- cor(test.data$World, predict(my.svm, test.data));
 print(test_correlation) # 0.8737907 (1 week), 0.8560593 (2 week), 0.9705397 (4 week)
 
 # Plot actual vs predicted cases
-plot(exp(new.data$World), xlab="Weeks since 2020-01-27", ylab="New cases per week")
+plot(exp(new.data$World), xlab="Weeks since 2020-02-17", ylab="New cases per week")
 points(exp(predict(my.svm, new.data)), type = "p", col = "blue")
 legend(5, 4e+6, legend=c("Actual cases", "Predicted cases"), fill=c("black", "blue"))
 
