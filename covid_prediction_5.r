@@ -36,7 +36,7 @@ prepare.week.data <- function(case.data) {
   week.data = read.table(text = "",
                          col.names = relevant.regions);
   total_week = rep(0, length(relevant.regions));
-  i <- 1; # i is number of days since January 20
+  i <- 1; # i is number of days since January 26
   while (i <= 301) {
     row <- case.data[i + 27, ];
     row[is.na(row)] <- 0;
@@ -135,7 +135,7 @@ test_correlation <- cor(test.data$World, predict(my.svm, test.data));
 print(test_correlation) # 0.8737907 (1 week), 0.8560593 (2 week), 0.9705397 (4 week)
 
 # Plot actual vs predicted cases
-plot(exp(new.data$World), xlab="Weeks since 2020-01-27", ylab="New cases per week")
+plot(exp(new.data$World), xlab="Weeks since 2020-03-01", ylab="New cases per week")
 points(exp(predict(my.svm, new.data)), type = "p", col = "blue")
 legend(5, 4e+6, legend=c("Actual cases", "Predicted cases"), fill=c("black", "blue"))
 
