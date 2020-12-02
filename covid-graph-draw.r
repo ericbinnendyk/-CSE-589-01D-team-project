@@ -14,5 +14,7 @@ week3.pred = 1937834;
 week4.pred = 2195903;
 predicted.cases = c(rep(week1.pred/7, 7), rep(week2.pred/7, 7), rep(week3.pred/7, 7), rep(week4.pred/7, 7));
 
-plot(actual.cases, xlab="Days since 2020-10-25", ylab="New cases per day", ylim=c(300000, 700000));
-points(predicted.cases + 100000, type = "p", col = "red");
+yrange = range(c(actual.cases, predicted.cases))
+plot(actual.cases, type="n", xlab="Days since 2020-10-25", ylab="New cases per day");
+lines(actual.cases, type = "l", col = "red");
+lines(predicted.cases, type = "l", col = "red");
